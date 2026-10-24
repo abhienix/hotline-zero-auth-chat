@@ -661,6 +661,39 @@
         }
       }
     });
+
+    // ── postMessage bridge (receives commands from parent overlay) ──
+    window.addEventListener('message', (e) => {
+      const { type, text, image } = e.data || {};
+      if (type === 'HOTLINE_F2') {
+        fileInput.click();
+      }
+      if (type === 'HOTLINE_F3') {
+        if (text !== undefined) textInput.value = text;
+        const msg = textInput.value.trim();
+        if (msg) sendMessage();
+      }
+      if (type === 'HOTLINE_FOCUS_INPUT') {
+        textInput.focus();
+      }
+      if (type === 'HOTLINE_SET_TEXT') {
+        textInput.value = text || '';
+        textInput.focus();
+      }
+      if (type === 'HOTLINE_SEND_IMAGE' && image) {
+        socket.emit('send-message', {
+          name: myName,
+          text: '',
+          image: image
+        });
+        showToast('📸 Photo sent!');
+      }
+    });
+
+    // ── Tell parent overlay what's typed (for syncing the mini bar) ──
+    textInput.addEventListener('input', () => {
+      window.parent.postMessage({ type: 'HOTLINE_INPUT_CHANGE', value: textInput.value }, '*');
+    });
   </script>
 </body>
 </html>
