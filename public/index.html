@@ -3,494 +3,326 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Direct Hotline &bull; Zero-Auth Chat</title>
+  <title>Direct Hotline</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --card-hover: #334155;
-      --border: #334155;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
+      --bg: #090d16;
+      --card: #131b2e;
+      --border: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #64748b;
+      --primary: #2563eb;
       --bubble-me: #2563eb;
       --bubble-them: #1e293b;
-      --online: #10b981;
-      --radius: 16px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
     body {
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100dvh;
-      overflow: hidden;
-    }
-
-    .app-container {
-      width: 100%;
-      max-width: 720px;
+      height: 100vh;
       height: 100dvh;
       display: flex;
       flex-direction: column;
-      background: var(--card);
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      position: relative;
+      overflow: hidden;
     }
 
-    /* Header */
+    /* Minimal Header */
     header {
-      padding: 14px 18px;
-      background: rgba(30, 41, 59, 0.95);
-      backdrop-filter: blur(8px);
+      padding: 10px 14px;
+      background: var(--card);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      z-index: 10;
+      flex-shrink: 0;
     }
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .status-badge {
-      position: relative;
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--online);
-    }
-
-    .pulse {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 8px;
-      height: 8px;
-      background: var(--online);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--online);
-    }
-
-    .header-info h2 {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.2px;
-    }
-
-    .header-info p {
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .header-actions {
+    .status-left {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .btn-icon {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #eab308;
+    }
+    .dot.live {
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+
+    .status-text h2 {
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .status-text p {
+      font-size: 11px;
       color: var(--text-muted);
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
+    }
+
+    .header-btns {
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-sm {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
       cursor: pointer;
-      transition: all 0.15s;
     }
-    .btn-icon:hover {
-      background: var(--card-hover);
-      color: var(--text);
-    }
+    .btn-sm:hover { color: var(--text); background: rgba(255,255,255,0.12); }
 
-    /* Chat Messages Box */
-    .chat-box {
+    /* Messages Stream */
+    #chatBox {
       flex: 1;
-      padding: 16px;
       overflow-y: auto;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      background: #0b1120;
+      gap: 10px;
     }
 
-    .chat-box::-webkit-scrollbar {
-      width: 6px;
-    }
-    .chat-box::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 4px;
-    }
+    #chatBox::-webkit-scrollbar { width: 4px; }
+    #chatBox::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-    .message {
+    .msg {
       display: flex;
       flex-direction: column;
-      max-width: 80%;
-      animation: fadeIn 0.15s ease-out;
+      max-width: 85%;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .message.me {
-      align-self: flex-end;
-    }
-
-    .message.them {
-      align-self: flex-start;
-    }
+    .msg.me { align-self: flex-end; }
+    .msg.them { align-self: flex-start; }
 
     .bubble {
-      padding: 10px 14px;
-      border-radius: 18px;
-      font-size: 14px;
-      line-height: 1.45;
+      padding: 8px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.4;
       word-break: break-word;
-      white-space: pre-wrap;
-      position: relative;
     }
-
-    .message.me .bubble {
+    .msg.me .bubble {
       background: var(--bubble-me);
-      color: #ffffff;
-      border-bottom-right-radius: 4px;
+      color: #fff;
+      border-bottom-right-radius: 2px;
     }
-
-    .message.them .bubble {
+    .msg.them .bubble {
       background: var(--bubble-them);
       color: var(--text);
       border: 1px solid var(--border);
-      border-bottom-left-radius: 4px;
+      border-bottom-left-radius: 2px;
     }
 
-    .bubble-meta {
+    .meta {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      font-size: 11px;
+      gap: 10px;
+      font-size: 10px;
       opacity: 0.7;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
 
     .bubble img {
       max-width: 100%;
-      max-height: 340px;
-      border-radius: 12px;
+      max-height: 280px;
+      border-radius: 8px;
       margin-top: 4px;
       display: block;
       cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    .bubble img:hover {
-      opacity: 0.95;
     }
 
     /* Typing indicator */
-    .typing-bar {
-      padding: 4px 16px;
-      font-size: 11px;
+    #typingBar {
+      padding: 2px 14px;
+      font-size: 10px;
       color: var(--text-muted);
-      height: 22px;
-      background: #0b1120;
+      height: 18px;
+      flex-shrink: 0;
     }
 
-    /* Footer & Inputs */
+    /* Input Footer */
     footer {
-      padding: 12px 16px;
+      padding: 10px 12px;
       background: var(--card);
       border-top: 1px solid var(--border);
-    }
-
-    .input-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: #0f172a;
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 6px 10px 6px 14px;
-      transition: border-color 0.2s;
-    }
-    .input-row:focus-within {
-      border-color: var(--primary);
+      gap: 8px;
+      flex-shrink: 0;
     }
 
-    .input-row input[type="text"] {
+    .input-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      gap: 6px;
+    }
+    .input-box:focus-within { border-color: var(--primary); }
+
+    .input-box input {
       flex: 1;
       background: transparent;
       border: none;
       outline: none;
       color: var(--text);
-      font-size: 14px;
+      font-size: 13px;
     }
+    .input-box input::placeholder { color: var(--text-muted); }
 
-    .input-row input[type="text"]::placeholder {
-      color: var(--text-muted);
-    }
-
-    .btn-attach {
+    .btn-icon {
+      background: none;
+      border: none;
       color: var(--text-muted);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 6px;
-      border-radius: 50%;
-      transition: color 0.15s;
+      padding: 4px;
     }
-    .btn-attach:hover {
-      color: var(--primary);
-    }
+    .btn-icon:hover { color: var(--text); }
 
     .btn-send {
       background: var(--primary);
       border: none;
-      color: white;
-      width: 36px;
-      height: 36px;
+      color: #fff;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      flex-shrink: 0;
     }
-    .btn-send:hover {
-      background: var(--primary-hover);
-    }
-    .btn-send:active {
-      transform: scale(0.95);
-    }
+    .btn-send:hover { opacity: 0.9; }
 
-    /* Drag & Drop Overlay */
-    .drag-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.92);
-      border: 3px dashed var(--primary);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-      z-index: 100;
+    /* Lightbox */
+    #lightbox {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+      display: none; align-items: center; justify-content: center; z-index: 100;
     }
-    .drag-overlay.active {
-      display: flex;
-    }
-
-    /* Lightbox Modal */
-    .lightbox {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.9);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 20px;
-    }
-    .lightbox.active {
-      display: flex;
-    }
-    .lightbox img {
-      max-width: 95vw;
-      max-height: 90vh;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-    }
+    #lightbox.active { display: flex; }
+    #lightbox img { max-width: 95vw; max-height: 90vh; border-radius: 6px; }
   </style>
 </head>
 <body>
 
-  <div class="app-container" id="dropArea">
-    <!-- Header -->
-    <header>
-      <div class="header-left">
-        <div class="status-badge">
-          <span class="pulse"></span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-          </svg>
-        </div>
-        <div class="header-info">
-          <h2>Direct Hotline (Zero-Auth)</h2>
-          <p id="onlineStatus">Connecting...</p>
-        </div>
+  <!-- Minimal Header -->
+  <header>
+    <div class="status-left">
+      <span class="dot" id="statusDot"></span>
+      <div class="status-text">
+        <h2>Direct Hotline</h2>
+        <p id="statusDesc">Connecting...</p>
       </div>
-
-      <div class="header-actions">
-        <button class="btn-icon" id="clearBtn" title="Wipe Chat History">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        </button>
-      </div>
-    </header>
-
-    <!-- Chat Messages -->
-    <main class="chat-box" id="chatBox"></main>
-
-    <!-- Typing bar -->
-    <div class="typing-bar" id="typingBar"></div>
-
-    <!-- Footer Controls -->
-    <footer>
-      <div class="input-row">
-        <label class="btn-attach" title="Attach Image">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-          <input type="file" id="fileInput" accept="image/*" style="display:none;">
-        </label>
-
-        <input type="text" id="textInput" placeholder="Type message… F2=Pick Photo  F3=Send  Ctrl+V=Paste" autocomplete="off">
-
-        <button class="btn-send" id="sendBtn" title="Send">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-        </button>
-      </div>
-    </footer>
-
-    <!-- Drag & Drop overlay -->
-    <div class="drag-overlay" id="dragOverlay">
-      <svg width="48" height="48" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-      </svg>
-      <h3>Drop photo to send instantly</h3>
     </div>
-  </div>
+    <div class="header-btns">
+      <button class="btn-sm" id="clearBtn">Clear</button>
+    </div>
+  </header>
+
+  <!-- Messages -->
+  <div id="chatBox"></div>
+
+  <!-- Typing bar -->
+  <div id="typingBar"></div>
+
+  <!-- Footer Input -->
+  <footer>
+    <label class="btn-icon" title="Attach picture">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <input type="file" id="fileInput" accept="image/*" style="display:none;">
+    </label>
+
+    <div class="input-box">
+      <input type="text" id="textInput" placeholder="Message or paste image (Ctrl+V)..." autocomplete="off">
+    </div>
+
+    <button class="btn-send" id="sendBtn" title="Send (Enter)">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+    </button>
+  </footer>
 
   <!-- Lightbox -->
-  <div class="lightbox" id="lightbox" onclick="this.classList.remove('active')">
-    <img id="lightboxImg" src="" alt="Full view">
+  <div id="lightbox" onclick="this.classList.remove('active')">
+    <img id="lightboxImg" src="">
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    // Audio notification using Web Audio API (no external file needed!)
-    function playNotificationSound() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.08); // A5
-        gain.gain.setValueAtTime(0.12, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
-      } catch (e) {}
-    }
-
-    // Connect to Socket.io
     const socket = io();
 
-    // Auto-generate or restore device name
-    let myName = localStorage.getItem('HOTLINE_USER_NAME');
-    if (!myName) {
-      myName = 'Device ' + Math.floor(100 + Math.random() * 900);
-      localStorage.setItem('HOTLINE_USER_NAME', myName);
-    }
+    let myName = localStorage.getItem('HOTLINE_USER_NAME') || ('User ' + Math.floor(100 + Math.random() * 900));
+    localStorage.setItem('HOTLINE_USER_NAME', myName);
 
     const chatBox = document.getElementById('chatBox');
     const textInput = document.getElementById('textInput');
     const sendBtn = document.getElementById('sendBtn');
     const fileInput = document.getElementById('fileInput');
-    const onlineStatus = document.getElementById('onlineStatus');
+    const statusDot = document.getElementById('statusDot');
+    const statusDesc = document.getElementById('statusDesc');
     const typingBar = document.getElementById('typingBar');
     const clearBtn = document.getElementById('clearBtn');
-    const dropArea = document.getElementById('dropArea');
-    const dragOverlay = document.getElementById('dragOverlay');
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightboxImg');
+
+    function esc(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
 
     function appendMessage(m) {
       const isMe = m.senderId === socket.id;
       const el = document.createElement('div');
-      el.className = `message ${isMe ? 'me' : 'them'}`;
+      el.className = 'msg ' + (isMe ? 'me' : 'them');
 
-      let contentHtml = '';
-      if (m.text) {
-        contentHtml += `<div>${escapeHtml(m.text)}</div>`;
-      }
-      if (m.image) {
-        contentHtml += `<img src="${m.image}" alt="Photo" onclick="openLightbox('${m.image}')">`;
-      }
+      let inner = '';
+      if (m.text) inner += '<p>' + esc(m.text) + '</p>';
+      if (m.image) inner += '<img src="' + m.image + '" onclick="viewImg(\'' + m.image + '\')">';
 
-      el.innerHTML = `
-        <div class="bubble">
-          <div class="bubble-meta">
-            <span>${escapeHtml(isMe ? 'You' : m.name)}</span>
-            <span>${m.time || ''}</span>
-          </div>
-          ${contentHtml}
-        </div>
-      `;
-
+      el.innerHTML = '<div class="bubble"><div class="meta"><span>' + esc(isMe ? 'You' : m.name) + '</span><span>' + (m.time || '') + '</span></div>' + inner + '</div>';
       chatBox.appendChild(el);
       chatBox.scrollTop = chatBox.scrollHeight;
-
-      if (!isMe) {
-        playNotificationSound();
-      }
     }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    window.openLightbox = (src) => {
+    window.viewImg = (src) => {
       lightboxImg.src = src;
       lightbox.classList.add('active');
     };
 
-    // Socket listeners
+    socket.on('connect', () => {
+      statusDot.className = 'dot live';
+      statusDesc.textContent = 'Connected (Hotline Live)';
+    });
+
+    socket.on('disconnect', () => {
+      statusDot.className = 'dot';
+      statusDesc.textContent = 'Disconnected';
+    });
+
     socket.on('online-count', (count) => {
       if (count <= 1) {
-        onlineStatus.innerHTML = `🟢 Online &bull; Waiting for friend to open link`;
+        statusDesc.textContent = 'Online &bull; Waiting for friend';
       } else {
-        onlineStatus.innerHTML = `🟢 ${count} Devices Connected &bull; Hotline Active`;
+        statusDesc.textContent = count + ' connected &bull; Active';
       }
     });
 
     socket.on('init-history', (history) => {
       chatBox.innerHTML = '';
-      history.forEach(m => appendMessage(m));
+      if (history) history.forEach(m => appendMessage(m));
     });
 
     socket.on('new-message', (m) => {
@@ -501,73 +333,50 @@
       chatBox.innerHTML = '';
     });
 
-    let typingTimeout;
-    socket.on('user-typing', (data) => {
-      if (data.isTyping) {
-        typingBar.textContent = `${data.name} is typing...`;
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => { typingBar.textContent = ''; }, 2500);
+    let typingTimer;
+    socket.on('user-typing', (d) => {
+      if (d.isTyping) {
+        typingBar.textContent = d.name + ' is typing...';
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => { typingBar.textContent = ''; }, 2500);
       } else {
         typingBar.textContent = '';
       }
     });
 
-    // Send text
-    function sendMessage() {
+    function doSend() {
       const text = textInput.value.trim();
       if (!text) return;
-      socket.emit('send-message', {
-        name: myName,
-        text: text
-      });
+      socket.emit('send-message', { name: myName, text });
       textInput.value = '';
       socket.emit('typing', { name: myName, isTyping: false });
     }
 
-    sendBtn.addEventListener('click', sendMessage);
+    sendBtn.addEventListener('click', doSend);
     textInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        sendMessage();
+        doSend();
       } else {
         socket.emit('typing', { name: myName, isTyping: true });
       }
     });
 
-    // Image compression (canvas-based client side)
     function compressAndSend(file) {
       if (!file || !file.type.startsWith('image/')) return;
-
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          const maxDim = 1600;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
+          const maxDim = 1200;
+          let w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
           }
-
           const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
-
-          socket.emit('send-message', {
-            name: myName,
-            text: '',
-            image: compressedDataUrl
-          });
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          socket.emit('send-message', { name: myName, text: '', image: canvas.toDataURL('image/jpeg', 0.8) });
         };
         img.src = e.target.result;
       };
@@ -575,122 +384,25 @@
     }
 
     fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
+      if (e.target.files.length) {
         compressAndSend(e.target.files[0]);
         e.target.value = '';
       }
     });
 
-    // Paste handler (Ctrl+V anywhere)
+    // Paste screenshot handler (Ctrl+V)
     window.addEventListener('paste', (e) => {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (const item of items) {
         if (item.type.indexOf('image') !== -1) {
-          const blob = item.getAsFile();
-          compressAndSend(blob);
+          compressAndSend(item.getAsFile());
+          break;
         }
       }
     });
 
-    // Drag and Drop
-    ['dragenter', 'dragover'].forEach(name => {
-      window.addEventListener(name, (e) => {
-        e.preventDefault();
-        dragOverlay.classList.add('active');
-      });
-    });
-    ['dragleave', 'drop'].forEach(name => {
-      window.addEventListener(name, (e) => {
-        e.preventDefault();
-        if (e.target === dragOverlay || name === 'drop') {
-          dragOverlay.classList.remove('active');
-        }
-      });
-    });
-    window.addEventListener('drop', (e) => {
-      e.preventDefault();
-      if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-        compressAndSend(e.dataTransfer.files[0]);
-      }
-    });
-
-    // Wipe chat
     clearBtn.addEventListener('click', () => {
-      if (confirm('Clear all chat messages and photos for both devices?')) {
-        socket.emit('clear-chat');
-      }
-    });
-
-    // ── Toast notification ──
-    function showToast(msg) {
-      let toast = document.getElementById('hotkey-toast');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'hotkey-toast';
-        toast.style.cssText = `
-          position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-          background: rgba(30,41,59,0.95); color: #f8fafc;
-          border: 1px solid #334155; border-radius: 12px;
-          padding: 8px 18px; font-size: 13px; font-weight: 600;
-          z-index: 9999; pointer-events: none;
-          transition: opacity 0.3s ease;
-        `;
-        document.body.appendChild(toast);
-      }
-      toast.textContent = msg;
-      toast.style.opacity = '1';
-      clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 1400);
-    }
-
-    // F1=hide/show | F2=pick photo | F3=send | F5=refresh
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'F1') {
-        e.preventDefault();
-        const app = document.querySelector('.app-container');
-        const hidden = app.style.opacity === '0';
-        app.style.opacity = hidden ? '1' : '0';
-        app.style.pointerEvents = hidden ? 'all' : 'none';
-        showToast(hidden ? '👁️ Chat visible' : '🙈 Chat hidden — F1 to show');
-      }
-      if (e.key === 'F2') {
-        e.preventDefault();
-        fileInput.click();
-        showToast('📸 F2 — Pick photo');
-      }
-      if (e.key === 'F3') {
-        e.preventDefault();
-        const text = textInput.value.trim();
-        if (text) {
-          sendMessage();
-          showToast('✅ F3 — Sent!');
-        } else {
-          showToast('⚠️ F3 — Type a message first');
-        }
-      }
-      if (e.key === 'F5') {
-        e.preventDefault();
-        window.location.reload();
-      }
-    });
-
-    // postMessage bridge — receives commands from parent overlay
-    window.addEventListener('message', (e) => {
-      const { type, text, image } = e.data || {};
-      if (type === 'F2') { fileInput.click(); }
-      if (type === 'F3') {
-        if (text !== undefined && text.trim()) textInput.value = text.trim();
-        if (textInput.value.trim()) sendMessage();
-      }
-      if (type === 'F5') { window.location.reload(); }
-      if (type === 'SEND_IMAGE' && image) {
-        socket.emit('send-message', { name: myName, text: '', image });
-        showToast('📸 Photo sent!');
-      }
-      if (type === 'SEND_TEXT' && text) {
-        socket.emit('send-message', { name: myName, text, image: null });
-        showToast('✅ Sent!');
-      }
+      if (confirm('Clear chat history?')) socket.emit('clear-chat');
     });
   </script>
 </body>
