@@ -371,7 +371,7 @@
           <input type="file" id="fileInput" accept="image/*" style="display:none;">
         </label>
 
-        <input type="text" id="textInput" placeholder="Message or paste screenshot (Ctrl+V)..." autocomplete="off">
+        <input type="text" id="textInput" placeholder="Type message… F2=Pick Photo  F3=Send  Ctrl+V=Paste" autocomplete="off">
 
         <button class="btn-send" id="sendBtn" title="Send">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -618,6 +618,47 @@
     clearBtn.addEventListener('click', () => {
       if (confirm('Clear all chat messages and photos for both devices?')) {
         socket.emit('clear-chat');
+      }
+    });
+
+    // ── Toast notification ──
+    function showToast(msg) {
+      let toast = document.getElementById('hotkey-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'hotkey-toast';
+        toast.style.cssText = `
+          position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+          background: rgba(30,41,59,0.95); color: #f8fafc;
+          border: 1px solid #334155; border-radius: 12px;
+          padding: 8px 18px; font-size: 13px; font-weight: 600;
+          z-index: 9999; pointer-events: none;
+          transition: opacity 0.3s ease;
+        `;
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 1400);
+    }
+
+    // ── F2 = Open image picker | F3 = Send message ──
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'F2') {
+        e.preventDefault();
+        fileInput.click();
+        showToast('📎 F2 — Pick a photo');
+      }
+      if (e.key === 'F3') {
+        e.preventDefault();
+        const text = textInput.value.trim();
+        if (text) {
+          sendMessage();
+          showToast('✅ F3 — Message sent!');
+        } else {
+          showToast('⚠️ F3 — Type a message first');
+        }
       }
     });
   </script>
