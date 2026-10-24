@@ -643,17 +643,20 @@
       toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 1400);
     }
 
-    // F1 = focus input | F2 = pick photo | F3 = send | F4 = clear chat
+    // F1=hide/show | F2=pick photo | F3=send | F5=refresh
     window.addEventListener('keydown', (e) => {
       if (e.key === 'F1') {
         e.preventDefault();
-        textInput.focus();
-        showToast('✏️ F1 — Chat input focused');
+        const app = document.querySelector('.app-container');
+        const hidden = app.style.opacity === '0';
+        app.style.opacity = hidden ? '1' : '0';
+        app.style.pointerEvents = hidden ? 'all' : 'none';
+        showToast(hidden ? '👁️ Chat visible' : '🙈 Chat hidden — F1 to show');
       }
       if (e.key === 'F2') {
         e.preventDefault();
         fileInput.click();
-        showToast('📎 F2 — Pick photo');
+        showToast('📸 F2 — Pick photo');
       }
       if (e.key === 'F3') {
         e.preventDefault();
@@ -665,28 +668,21 @@
           showToast('⚠️ F3 — Type a message first');
         }
       }
-      if (e.key === 'F4') {
+      if (e.key === 'F5') {
         e.preventDefault();
-        if (confirm('Clear all messages for both devices?')) {
-          socket.emit('clear-chat');
-          showToast('🗑️ F4 — Chat cleared');
-        }
+        window.location.reload();
       }
     });
 
     // postMessage bridge — receives commands from parent overlay
     window.addEventListener('message', (e) => {
       const { type, text, image } = e.data || {};
-      if (type === 'F1') { textInput.focus(); }
       if (type === 'F2') { fileInput.click(); }
       if (type === 'F3') {
         if (text !== undefined && text.trim()) textInput.value = text.trim();
         if (textInput.value.trim()) sendMessage();
       }
-      if (type === 'F4') {
-        socket.emit('clear-chat');
-        showToast('🗑️ Chat cleared');
-      }
+      if (type === 'F5') { window.location.reload(); }
       if (type === 'SEND_IMAGE' && image) {
         socket.emit('send-message', { name: myName, text: '', image });
         showToast('📸 Photo sent!');
