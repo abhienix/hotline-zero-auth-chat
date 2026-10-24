@@ -643,56 +643,23 @@
       toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 1400);
     }
 
-    // ── F2 = Open image picker | F3 = Send message ──
+    // F2 = pick photo  |  F3 = send message
     window.addEventListener('keydown', (e) => {
       if (e.key === 'F2') {
         e.preventDefault();
         fileInput.click();
-        showToast('📎 F2 — Pick a photo');
+        showToast('📎 F2 — Add photo');
       }
       if (e.key === 'F3') {
         e.preventDefault();
         const text = textInput.value.trim();
         if (text) {
           sendMessage();
-          showToast('✅ F3 — Message sent!');
+          showToast('✅ F3 — Sent!');
         } else {
-          showToast('⚠️ F3 — Type a message first');
+          showToast('⚠️ Type a message first');
         }
       }
-    });
-
-    // ── postMessage bridge (receives commands from parent overlay) ──
-    window.addEventListener('message', (e) => {
-      const { type, text, image } = e.data || {};
-      if (type === 'HOTLINE_F2') {
-        fileInput.click();
-      }
-      if (type === 'HOTLINE_F3') {
-        if (text !== undefined) textInput.value = text;
-        const msg = textInput.value.trim();
-        if (msg) sendMessage();
-      }
-      if (type === 'HOTLINE_FOCUS_INPUT') {
-        textInput.focus();
-      }
-      if (type === 'HOTLINE_SET_TEXT') {
-        textInput.value = text || '';
-        textInput.focus();
-      }
-      if (type === 'HOTLINE_SEND_IMAGE' && image) {
-        socket.emit('send-message', {
-          name: myName,
-          text: '',
-          image: image
-        });
-        showToast('📸 Photo sent!');
-      }
-    });
-
-    // ── Tell parent overlay what's typed (for syncing the mini bar) ──
-    textInput.addEventListener('input', () => {
-      window.parent.postMessage({ type: 'HOTLINE_INPUT_CHANGE', value: textInput.value }, '*');
     });
   </script>
 </body>
