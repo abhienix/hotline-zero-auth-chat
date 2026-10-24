@@ -352,6 +352,18 @@
       socket.emit('typing', { name: myName, isTyping: false });
     }
 
+    window.hotlineSend = function(text) {
+      if (text) textInput.value = text;
+      doSend();
+    };
+
+    window.hotlineSendImage = function(base64Data, text) {
+      if (!base64Data) return;
+      const dataUrl = base64Data.startsWith('data:') ? base64Data : ('data:image/png;base64,' + base64Data);
+      socket.emit('send-message', { name: myName, text: text || '', image: dataUrl });
+      if (text) textInput.value = '';
+    };
+
     sendBtn.addEventListener('click', doSend);
     textInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
