@@ -643,12 +643,17 @@
       toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 1400);
     }
 
-    // F2 = pick photo  |  F3 = send message
+    // F1 = focus input | F2 = pick photo | F3 = send | F4 = clear chat
     window.addEventListener('keydown', (e) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        textInput.focus();
+        showToast('✏️ F1 — Chat input focused');
+      }
       if (e.key === 'F2') {
         e.preventDefault();
         fileInput.click();
-        showToast('📎 F2 — Add photo');
+        showToast('📎 F2 — Pick photo');
       }
       if (e.key === 'F3') {
         e.preventDefault();
@@ -657,8 +662,38 @@
           sendMessage();
           showToast('✅ F3 — Sent!');
         } else {
-          showToast('⚠️ Type a message first');
+          showToast('⚠️ F3 — Type a message first');
         }
+      }
+      if (e.key === 'F4') {
+        e.preventDefault();
+        if (confirm('Clear all messages for both devices?')) {
+          socket.emit('clear-chat');
+          showToast('🗑️ F4 — Chat cleared');
+        }
+      }
+    });
+
+    // postMessage bridge — receives commands from parent overlay
+    window.addEventListener('message', (e) => {
+      const { type, text, image } = e.data || {};
+      if (type === 'F1') { textInput.focus(); }
+      if (type === 'F2') { fileInput.click(); }
+      if (type === 'F3') {
+        if (text !== undefined && text.trim()) textInput.value = text.trim();
+        if (textInput.value.trim()) sendMessage();
+      }
+      if (type === 'F4') {
+        socket.emit('clear-chat');
+        showToast('🗑️ Chat cleared');
+      }
+      if (type === 'SEND_IMAGE' && image) {
+        socket.emit('send-message', { name: myName, text: '', image });
+        showToast('📸 Photo sent!');
+      }
+      if (type === 'SEND_TEXT' && text) {
+        socket.emit('send-message', { name: myName, text, image: null });
+        showToast('✅ Sent!');
       }
     });
   </script>
