@@ -357,8 +357,13 @@
       doSend();
     };
 
+    let lastImageTime = 0;
+
     window.hotlineSendImage = function(base64Data, text) {
       if (!base64Data) return;
+      const now = Date.now();
+      if (now - lastImageTime < 1000) return; // Prevent duplicate image snaps within 1s
+      lastImageTime = now;
       const dataUrl = base64Data.startsWith('data:') ? base64Data : ('data:image/png;base64,' + base64Data);
       socket.emit('send-message', { name: myName, text: text || '', image: dataUrl });
       if (text) textInput.value = '';
@@ -397,16 +402,20 @@
 
     fileInput.addEventListener('change', (e) => {
       if (e.target.files.length) {
+        lastImageTime = Date.now();
         compressAndSend(e.target.files[0]);
         e.target.value = '';
       }
     });
 
-    // Paste screenshot handler (Ctrl+V)
+    // Paste screenshot handler (Ctrl+V) - debounced to prevent duplicate sends if hotlineSendImage already emitted
     window.addEventListener('paste', (e) => {
+      const now = Date.now();
+      if (now - lastImageTime < 1500) return;
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (const item of items) {
         if (item.type.indexOf('image') !== -1) {
+          lastImageTime = now;
           compressAndSend(item.getAsFile());
           break;
         }
